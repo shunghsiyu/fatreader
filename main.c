@@ -31,10 +31,10 @@ int main(int argc, const char * argv[])
         }
     }
     
-    
+
     printf("Opened file %s\n", filepath);
     printf("\n");
-    
+          
     struct stat fstatbuf;
     int fstat_status;
     fstat_status = fstat(fdin, &fstatbuf);
@@ -43,7 +43,7 @@ int main(int argc, const char * argv[])
         exit(EXIT_FAILURE);
     }
     
-    unsigned char * mmap_file;
+    uint8_t * mmap_file;
     mmap_file = mmap(NULL, fstatbuf.st_size, PROT_READ, MAP_SHARED, fdin, 0);
     if (mmap_file == MAP_FAILED) {
         perror("mmap failed");
@@ -112,8 +112,8 @@ int main(int argc, const char * argv[])
     exit(EXIT_SUCCESS);
 }
 
-int get_bytes(const unsigned char * src, int offset, int size) {
-    if (size > 4 || size < 0) {
+int get_bytes(const uint8_t * src, int offset, size_t size) {
+    if (size > 4) {
         perror("read_bytes size error");
         exit(EXIT_FAILURE);
     }
@@ -121,15 +121,14 @@ int get_bytes(const unsigned char * src, int offset, int size) {
     value = 0;
     
     int i;
-    for (i = size-1; i >= 0; i--) {
-        //printf("0x%02x ", src[offset+i]);
+    for (i = (int) size-1; i >= 0; i--) {
         value = (value << 8) + src[offset+i];
     }
     
     return value;
 }
 
-int read_le_bytes(const unsigned char * src, int offset, int num_byte, int * dst, int dst_size) {
+int read_le_bytes(const uint8_t * src, int offset, size_t num_byte, int * dst, size_t dst_size) {
     if ((num_byte % 2) > 0) {
         perror("number of bytes being read should be multiple of 2");
         return -1;
@@ -148,7 +147,7 @@ int read_le_bytes(const unsigned char * src, int offset, int num_byte, int * dst
     return 1;
 }
 
-int read_doswholename(const unsigned char * src, int offset, char * name, int name_size) {
+int read_doswholename(const uint8_t * src, int offset, char * name, size_t name_size) {
     int pos;
     pos = 0;
     
@@ -177,7 +176,7 @@ int read_doswholename(const unsigned char * src, int offset, char * name, int na
     return 1;
 }
 
-int read_dosname(const unsigned char * src, int offset, char * name, int name_size) {
+int read_dosname(const uint8_t * src, int offset, char * name, size_t name_size) {
     int new_offset;
     new_offset = get_dosname_offset(src, offset);
     
@@ -189,7 +188,7 @@ int read_dosname(const unsigned char * src, int offset, char * name, int name_si
     return 1;
 }
 
-int read_dosext(const unsigned char * src, int offset, char * ext, int ext_size) {
+int read_dosext(const uint8_t * src, int offset, char * ext, size_t ext_size) {
     int new_offset;
     new_offset = get_dosname_offset(src, offset) + DOSNAME_LENGTH;
     
@@ -201,7 +200,7 @@ int read_dosext(const unsigned char * src, int offset, char * ext, int ext_size)
     return 1;
 }
 
-int read_lfn_entry(const unsigned char * src, int offset, int * lfn, int lfn_size) {
+int read_lfn_entry(const uint8_t * src, int offset, int * lfn, size_t lfn_size) {
     if (lfn_size < LFN_LENGTH1 + LFN_LENGTH2 + LFN_LENGTH3) {
         perror("lfn's length is too short");
         return -1;
@@ -223,14 +222,14 @@ int read_lfn_entry(const unsigned char * src, int offset, int * lfn, int lfn_siz
     len = len + LFN_LENGTH3/2;
     
     int i;
-    for (i = lfn_size-1; i > len-1; i--) {
+    for (i = (int) lfn_size-1; i > len-1 && i >= 0; i--) {
         lfn[i] = 0;
     }
     
     return 1;
 }
 
-int get_ordinal(const unsigned char * src, int offset) {
+int get_ordinal(const uint8_t * src, int offset) {
     int ordinal = src[offset];
     if (ordinal > ORDINAL_MAX || ordinal < ORDINAL_MIN) {
         return -1;
@@ -239,13 +238,13 @@ int get_ordinal(const unsigned char * src, int offset) {
     }
 }
 
-int get_entry_size(const unsigned char * src, int offset) {
+int get_entry_size(const uint8_t * src, int offset) {
     int size;
     size = (get_ordinal(src, offset) - ORDINAL_MIN + 1) * 2 * 0x10 + 0x20;
     return size;
 }
 
-int get_dosname_offset(const unsigned char * src, int offset) {
+int get_dosname_offset(const uint8_t * src, int offset) {
     int ordinal;
     ordinal = get_ordinal(src, offset);
     
@@ -260,14 +259,14 @@ int get_dosname_offset(const unsigned char * src, int offset) {
     return new_offset;
 }
 
-int is_directory(const unsigned char * src, int offset) {
+int is_directory(const uint8_t * src, int offset) {
     int new_offset;
     new_offset = get_dosname_offset(src, offset) + OFFSET_ATTRI_FROM_DOSNAME;
     
-    unsigned char attri_block;
+    uint8_t attri_block;
     attri_block = src[new_offset];
     
-    unsigned char directory_bit;
+    uint8_t directory_bit;
     directory_bit = attri_block & FAT_ATTRI_DIRECTORY;
     if (directory_bit > 0) {
         return 1;
@@ -276,14 +275,10 @@ int is_directory(const unsigned char * src, int offset) {
     }
 }
 
-int trim(char * str, int str_size) {
-    if (str_size < 0) {
-        perror("length should not be negative");
-        return -1;
-    }
+int trim(char * str, size_t str_size) {
     
     int i;
-    for (i = str_size-1; i >= 0; i--) {
+    for (i = (int) str_size-1; i >= 0; i--) {
         if (str[i] == ' ') {
             str[i] = '\0';
         } else {

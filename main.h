@@ -17,7 +17,7 @@
 #include <wchar.h>
 
 #define BUFFER_SIZE (256)
-#define FILEPATH "/home/yus/NetBeansProjects/fatreader/fat16.f"
+#define FILEPATH "/Users/shunghsiyu/Xcode/fatreader/fatreader/fat16.fs"
 #define OFFSET_BYTEPERBLOCK (0x0b)
 #define OFFSET_SIZE_BYTEPERBLOCK (2)
 #define OFFSET_FATNUM (0x10)
@@ -46,15 +46,15 @@
 #define fatreader_main_h
 
 int main(int argc, const char * argv[]);
-int get_bytes(const unsigned char * src, int offset, int size);
-int read_le_bytes(const unsigned char * src, int offset, int num_byte, int * dst, int dst_size);
-int read_doswholename(const unsigned char * src, int offset, char * name, int name_size);
-int read_dosname(const unsigned char * src, int offset, char * name, int name_size);
-int read_dosext(const unsigned char * src, int offset, char * ext, int ext_size);
-int read_lfn_entry(const unsigned char * src, int offset, int * lfn, int lfn_size);
-int get_ordinal(const unsigned char * src, int offset);
-int get_entry_size(const unsigned char * src, int offset);
-int get_dosname_offset(const unsigned char * src, int offset);
-int is_directory(const unsigned char * src, int offset);
-int trim(char * str, int str_size);
+int get_bytes(const uint8_t * src, int offset, size_t size);
+int read_le_bytes(const uint8_t * src, int offset, size_t num_byte, int * dst, size_t dst_size);
+int read_doswholename(const uint8_t * src, int offset, char * name, size_t name_size);
+int read_dosname(const uint8_t * src, int offset, char * name, size_t name_size);
+int read_dosext(const uint8_t * src, int offset, char * ext, size_t ext_size);
+int read_lfn_entry(const uint8_t * src, int offset, int * lfn, size_t lfn_size);
+int get_ordinal(const uint8_t * src, int offset);
+int get_entry_size(const uint8_t * src, int offset);
+int get_dosname_offset(const uint8_t * src, int offset);
+int is_directory(const uint8_t * src, int offset);
+int trim(char * str, size_t str_size);
 #endif
