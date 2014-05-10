@@ -28,6 +28,7 @@
 #define OFFSET_SIZE_NUMRESERVEBLOCK (2)
 #define OFFSET_ATTRI_FROM_DOSNAME (0x0b)
 
+#define FAT16_ENTRY_SIZE (0x20)
 #define DOSNAME_LENGTH (8)
 #define DOSEXT_LENGTH (3)
 #define DOSWHOLENAME_LENGTH (12)
@@ -52,7 +53,8 @@ int get_le_bytes_int(const uint8_t * src, int offset, size_t num_bytes, int32_t 
 int read_doswholename(const uint8_t * src, int offset, char * name, size_t name_size);
 int read_dosname(const uint8_t * src, int offset, char * name, size_t name_size);
 int read_dosext(const uint8_t * src, int offset, char * ext, size_t ext_size);
-int read_lfn_entry(const uint8_t * src, int offset, wchar_t * lfn, size_t lfn_size);
+int read_lfn_whole_entry(const uint8_t * src, int offset, wchar_t * lfn, size_t lfn_size);
+int read_lfn_single_entry(const uint8_t * src, int offset, wchar_t * lfn, size_t lfn_size);
 int get_ordinal(const uint8_t * src, int offset);
 int get_entry_size(const uint8_t * src, int offset);
 int get_dosname_offset(const uint8_t * src, int offset);

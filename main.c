@@ -92,7 +92,7 @@ int main(int argc, const char * argv[])
         }
         read_doswholename(mmap_file, offset, wholename, DOSWHOLENAME_LENGTH);
         printf("%s%sDOS Name: %s\n", tab, tab, wholename);
-        read_lfn_entry(mmap_file, offset, lfn, LFN_ENTRY_SIZE);
+        read_lfn_whole_entry(mmap_file, offset, lfn, LFN_ENTRY_SIZE);
         freopen(NULL, "w", stdout);
         wprintf(L"%s%sLong Name: %ls\n", tab, tab, lfn);
         freopen(NULL, "w", stdout);
@@ -216,7 +216,30 @@ int read_dosext(const uint8_t * src, int offset, char * ext, size_t ext_size) {
     return 1;
 }
 
-int read_lfn_entry(const uint8_t * src, int offset, wchar_t * lfn, size_t lfn_size) {
+int read_lfn_whole_entry(const uint8_t * src, int offset, wchar_t * lfn, size_t lfn_size) {
+    size_t entry_num;
+    entry_num = get_ordinal(src, offset) - ORDINAL_MIN + 1;
+    
+    long i;
+    int entry_offset;
+    int pos;
+    pos = 0;
+    int status;
+    status = 0;
+    for (i = entry_num-1; i >= 0 && status >=0; i--) {
+        entry_offset = (int) i * FAT16_ENTRY_SIZE;
+        status = read_lfn_single_entry(src, offset+entry_offset, lfn+pos, lfn_size-pos);
+        pos = pos + LFN_ENTRY_SIZE/2;
+    }
+    
+    for (i = lfn_size-1; i > pos-1 && i >= 0; i--) {
+        lfn[i] = 0;
+    }
+    
+    return 0;
+}
+
+int read_lfn_single_entry(const uint8_t * src, int offset, wchar_t * lfn, size_t lfn_size) {
     if (lfn_size < LFN_LENGTH1 + LFN_LENGTH2 + LFN_LENGTH3) {
         perror("lfn's length is too short");
         return -1;
@@ -236,11 +259,6 @@ int read_lfn_entry(const uint8_t * src, int offset, wchar_t * lfn, size_t lfn_si
     new_offset = new_offset + LFN_LENGTH2 + OFFSET_LFN2FROM3;
     read_lfn_bytes(src, new_offset, LFN_LENGTH3, lfn+len, lfn_size-len);
     len = len + LFN_LENGTH3/2;
-    
-    long i;
-    for (i = lfn_size-1; i > len-1 && i >= 0; i--) {
-        lfn[i] = 0;
-    }
     
     return 1;
 }
