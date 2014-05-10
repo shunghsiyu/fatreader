@@ -47,11 +47,12 @@
 
 int main(int argc, const char * argv[]);
 int get_bytes(const uint8_t * src, int offset, size_t size);
-int read_le_bytes(const uint8_t * src, int offset, size_t num_byte, int * dst, size_t dst_size);
+int read_lfn_bytes(const uint8_t * src, int offset, size_t num_byte, wchar_t * dst, size_t dst_size);
+int get_le_bytes_int(const uint8_t * src, int offset, size_t num_bytes, int32_t * dst);
 int read_doswholename(const uint8_t * src, int offset, char * name, size_t name_size);
 int read_dosname(const uint8_t * src, int offset, char * name, size_t name_size);
 int read_dosext(const uint8_t * src, int offset, char * ext, size_t ext_size);
-int read_lfn_entry(const uint8_t * src, int offset, int * lfn, size_t lfn_size);
+int read_lfn_entry(const uint8_t * src, int offset, wchar_t * lfn, size_t lfn_size);
 int get_ordinal(const uint8_t * src, int offset);
 int get_entry_size(const uint8_t * src, int offset);
 int get_dosname_offset(const uint8_t * src, int offset);

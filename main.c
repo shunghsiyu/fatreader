@@ -120,28 +120,44 @@ int get_bytes(const uint8_t * src, int offset, size_t size) {
     int value;
     value = 0;
     
-    int i;
-    for (i = (int) size-1; i >= 0; i--) {
+    long i;
+    for (i = size-1; i >= 0; i--) {
         value = (value << 8) + src[offset+i];
     }
     
     return value;
 }
 
-int read_le_bytes(const uint8_t * src, int offset, size_t num_byte, int * dst, size_t dst_size) {
+int read_lfn_bytes(const uint8_t * src, int offset, size_t num_byte, wchar_t * dst, size_t dst_size) {
     if ((num_byte % 2) > 0) {
         perror("number of bytes being read should be multiple of 2");
         return -1;
     }
     
     int pos;
-    pos = 0;    int i;
+    pos = 0;
+    int i;
     for (i = 0; i < num_byte; i = i + 2) {
         if ((pos+2) > dst_size*2) {
             perror("dst's length is too short");
             return -1;
         }
-        dst[i/2] = (src[offset+i+1] << 8) + src[offset+i];
+        get_le_bytes_int(src, offset+i, 2, &dst[i/2]);
+    }
+    
+    return 1;
+}
+
+int get_le_bytes_int(const uint8_t * src, int offset, size_t num_bytes, int32_t * dst) {
+    if (num_bytes > 4) {
+        perror("num_bytes can be greater than 4");
+        return -1;
+    }
+    
+    long i;
+    *dst = 0;
+    for (i = num_bytes-1; i >= 0; i--) {
+        *dst = (*dst << 8) + src[offset+i];
     }
     
     return 1;
@@ -200,7 +216,7 @@ int read_dosext(const uint8_t * src, int offset, char * ext, size_t ext_size) {
     return 1;
 }
 
-int read_lfn_entry(const uint8_t * src, int offset, int * lfn, size_t lfn_size) {
+int read_lfn_entry(const uint8_t * src, int offset, wchar_t * lfn, size_t lfn_size) {
     if (lfn_size < LFN_LENGTH1 + LFN_LENGTH2 + LFN_LENGTH3) {
         perror("lfn's length is too short");
         return -1;
@@ -212,17 +228,17 @@ int read_lfn_entry(const uint8_t * src, int offset, int * lfn, size_t lfn_size) 
     int len;
     len = 0;
     
-    read_le_bytes(src, new_offset, LFN_LENGTH1, lfn+len, lfn_size-len);
+    read_lfn_bytes(src, new_offset, LFN_LENGTH1, lfn+len, lfn_size-len);
     len = len + LFN_LENGTH1/2;
     new_offset = new_offset + LFN_LENGTH1 + OFFSET_LFN1FROM2;
-    read_le_bytes(src, new_offset, LFN_LENGTH2, lfn+len, lfn_size-len);
+    read_lfn_bytes(src, new_offset, LFN_LENGTH2, lfn+len, lfn_size-len);
     len = len + LFN_LENGTH2/2;
     new_offset = new_offset + LFN_LENGTH2 + OFFSET_LFN2FROM3;
-    read_le_bytes(src, new_offset, LFN_LENGTH3, lfn+len, lfn_size-len);
+    read_lfn_bytes(src, new_offset, LFN_LENGTH3, lfn+len, lfn_size-len);
     len = len + LFN_LENGTH3/2;
     
-    int i;
-    for (i = (int) lfn_size-1; i > len-1 && i >= 0; i--) {
+    long i;
+    for (i = lfn_size-1; i > len-1 && i >= 0; i--) {
         lfn[i] = 0;
     }
     
@@ -277,8 +293,8 @@ int is_directory(const uint8_t * src, int offset) {
 
 int trim(char * str, size_t str_size) {
     
-    int i;
-    for (i = (int) str_size-1; i >= 0; i--) {
+    long i;
+    for (i = str_size-1; i >= 0; i--) {
         if (str[i] == ' ') {
             str[i] = '\0';
         } else {
