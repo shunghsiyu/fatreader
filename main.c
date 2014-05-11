@@ -87,7 +87,7 @@ int main(int argc, const char * argv[])
     int num_entry;
     num_entry = 0;
     char wholename[DOSWHOLENAME_LENGTH+1];
-    int lfn[LFN_ENTRY_SIZE/2];
+    wchar_t lfn[LFN_ENTRY_SIZE/2];
     int offset;
     offset = root_offset;
     while (get_ordinal(mmap_file, offset) >= 0) {
@@ -156,7 +156,7 @@ int main(int argc, const char * argv[])
             off_t lseek_stat;
             int file_size;
             file_size = get_entry_file_size(mmap_file, name_offset);
-            lseek_stat = lseek(fdout, file_size, SEEK_SET);
+            lseek_stat = lseek(fdout, file_size-1, SEEK_SET);
             if (lseek_stat < 0) {
                 perror("lseek error");
                 exit(EXIT_FAILURE);
@@ -170,7 +170,7 @@ int main(int argc, const char * argv[])
             }
             
             uint8_t * dst;
-            dst = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fdout, 0);
+            dst = mmap(NULL, file_size-1, PROT_READ | PROT_WRITE, MAP_SHARED, fdout, 0);
             if (dst == MAP_FAILED) {
                 perror("mmap dst failed");
                 exit(EXIT_FAILURE);
@@ -305,7 +305,7 @@ int read_lfn_bytes(const uint8_t * src, int offset, size_t num_byte, wchar_t * d
             perror("dst's length is too short");
             return -1;
         }
-        read_le_bytes_int(src, offset+i, 2, &dst[i/2]);
+        read_le_bytes_int(src, offset+i, 2, (int *) &dst[i/2]);
     }
     
     return 1;
