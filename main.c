@@ -53,19 +53,19 @@ int main(int argc, const char * argv[])
     printf("Information about the partition:\n");
     
     int num_byteperblock;
-    num_byteperblock = get_bytes(mmap_file, OFFSET_BYTEPERBLOCK, OFFSET_SIZE_BYTEPERBLOCK);
+    read_le_bytes_int(mmap_file, OFFSET_BYTEPERBLOCK, OFFSET_SIZE_BYTEPERBLOCK, &num_byteperblock);
     printf("%s%d bytes per block\n", tab,num_byteperblock);
     
     int num_reservedblock;
-    num_reservedblock = get_bytes(mmap_file, OFFSET_NUMRESERVEBLOCK, OFFSET_SIZE_NUMRESERVEBLOCK);
+    read_le_bytes_int(mmap_file, OFFSET_NUMRESERVEBLOCK, OFFSET_SIZE_NUMRESERVEBLOCK, &num_reservedblock);
     printf("%s%d blocks reserved\n", tab, num_reservedblock);
     
     int num_fat;
-    num_fat = get_bytes(mmap_file, OFFSET_FATNUM, OFFSET_SIZE_FATNUM);
+    read_le_bytes_int(mmap_file, OFFSET_FATNUM, OFFSET_SIZE_FATNUM, &num_fat);
     printf("%s%d file allocation tables (FAT)\n", tab, num_fat);
     
     int fat_block_size;
-    fat_block_size = get_bytes(mmap_file, OFFSET_FATSIZE, OFFSET_SIZE_FATSIZE);
+    read_le_bytes_int(mmap_file, OFFSET_FATSIZE, OFFSET_SIZE_FATSIZE, &fat_block_size);
     printf("%s%d blocks per FAT\n", tab, fat_block_size);
     printf("\n");
     
@@ -112,22 +112,6 @@ int main(int argc, const char * argv[])
     exit(EXIT_SUCCESS);
 }
 
-int get_bytes(const uint8_t * src, int offset, size_t size) {
-    if (size > 4) {
-        perror("read_bytes size error");
-        exit(EXIT_FAILURE);
-    }
-    int value;
-    value = 0;
-    
-    long i;
-    for (i = size-1; i >= 0; i--) {
-        value = (value << 8) + src[offset+i];
-    }
-    
-    return value;
-}
-
 int read_lfn_bytes(const uint8_t * src, int offset, size_t num_byte, wchar_t * dst, size_t dst_size) {
     if ((num_byte % 2) > 0) {
         perror("number of bytes being read should be multiple of 2");
@@ -142,13 +126,13 @@ int read_lfn_bytes(const uint8_t * src, int offset, size_t num_byte, wchar_t * d
             perror("dst's length is too short");
             return -1;
         }
-        get_le_bytes_int(src, offset+i, 2, &dst[i/2]);
+        read_le_bytes_int(src, offset+i, 2, &dst[i/2]);
     }
     
     return 1;
 }
 
-int get_le_bytes_int(const uint8_t * src, int offset, size_t num_bytes, int32_t * dst) {
+int read_le_bytes_int(const uint8_t * src, int offset, size_t num_bytes, int32_t * dst) {
     if (num_bytes > 4) {
         perror("num_bytes can be greater than 4");
         return -1;
