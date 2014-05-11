@@ -20,6 +20,8 @@
 #define FILEPATH "/Users/shunghsiyu/Xcode/fatreader/fatreader/fat16.fs"
 #define OFFSET_BYTEPERBLOCK (0x0b)
 #define OFFSET_SIZE_BYTEPERBLOCK (2)
+#define OFFSET_BLOCKPERCLUSTER (0x0d)
+#define OFFSET_SIZE_BLOCKPERCLUSTER (1)
 #define OFFSET_FATNUM (0x10)
 #define OFFSET_SIZE_FATNUM (1)
 #define OFFSET_ROOTENTRIES (0x11)
@@ -29,6 +31,11 @@
 #define OFFSET_NUMRESERVEBLOCK (0x0e)
 #define OFFSET_SIZE_NUMRESERVEBLOCK (2)
 #define OFFSET_ATTRI_FROM_DOSNAME (0x0b)
+#define OFFSET_LOCATION_FROM_DOSNAME (0x1a)
+#define OFFSET_SIZE_LOCATION (2)
+#define OFFSET_LENGTH_FROM_DOSNAME (0x1c)
+#define OFFSET_SIZE_LENGTH (4)
+
 
 #define FAT16_ENTRY_SIZE (0x20)
 #define DOSNAME_LENGTH (8)
@@ -49,6 +56,11 @@
 #define fatreader_main_h
 
 int main(int argc, const char * argv[]);
+int find_entry_in_directory(const uint8_t * src, int offset, size_t directory_size, const char * name);
+int get_entry_location(const uint8_t * src, int offset, int data_offset, int cluster_size);
+int get_entry_file_size(const uint8_t * src, int offset);
+int get_cluster_num(int offset, int data_offset, int cluster_size);
+int copy_data(const uint8_t * src, int fat_offset, int data_offset, int start_cluster, int size, uint8_t * dst, int dst_size, int cluster_size);
 int read_lfn_bytes(const uint8_t * src, int offset, size_t num_byte, wchar_t * dst, size_t dst_size);
 int read_le_bytes_int(const uint8_t * src, int offset, size_t num_bytes, int32_t * dst);
 int read_doswholename(const uint8_t * src, int offset, char * name, size_t name_size);
